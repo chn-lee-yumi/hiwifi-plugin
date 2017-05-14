@@ -1,0 +1,235 @@
+#!/bin/sh
+
+# TODO：none
+
+conf_path="/etc/nginx/vh.cache_server_by_yumi.conf"
+cache_path="/tmp"
+cache_path2="/tmp/data"
+
+install()
+{
+    # 备份配置以便在status中读取
+    cp ./CacheServer.conf /root
+    
+    # 拷贝两个配置文件
+    cp ./vh.cache_server_disk.conf /root
+    cp ./vh.cache_server_ram.conf /root
+    
+    # 读取配置
+    . CacheServer.conf
+    
+    # 拷贝nginx缓存配置、设置缓存空间大小
+    if [ $cachepath == '1' ]; then
+        # 如果是内存，拷贝内存的conf
+        cp ./vh.cache_server_ram.conf $conf_path
+        # 智能设置缓存空间大小
+        cache_space_var1=$(df -h|grep -E '(tmpfs.*tmp)'|awk '{print $2}')
+        cache_space_var2=${cache_space_var1%M*}
+        cache_space_var3=$(awk 'BEGIN{print int('$cache_space_var2'/1.5-3)}')
+    else
+        # 如果是外置存储，拷贝外置存储的conf
+        cp ./vh.cache_server_disk.conf $conf_path
+        # 按用户的设置来设置缓存空间大小
+        cache_space_var3=$cachespace
+    fi
+    echo "cachespace='"$cache_space_var3"'" >> /root/CacheServer.conf
+    sed -i "s/max_size=[0-9]*m/max_size="$cache_space_var3"m/g" $conf_path
+    
+    # 修改缓存时间
+    sed -i "s/inactive=[0-9]*h/inactive="$cachetime"h/g" $conf_path
+    sed -i "s/proxy_cache_valid  200 [0-9]*h/proxy_cache_valid  200 "$cachetime"h/g" $conf_path
+    
+    # 修改缓存文件类型
+    cache_file_type=$(echo $cachefiletype|sed "s/,/|/g") # 先把,换成|
+    sed -i "s/location ~\* \\\\.([0-9a-zA-Z|]*)\\$ {/location ~\* \\\\.("$cache_file_type")\\$ {/g" $conf_path
+    
+    # 修改缓存最小请求次数
+    sed -i "s/proxy_cache_min_uses [0-9]*/proxy_cache_min_uses "$cacheminuses"/g" $conf_path
+        
+    # 重新加载nginx配置
+    nginx -s reload
+    
+    # 给日志加点内容以免刚安装时状态显示“未知”
+    echo "0 MISS" > /tmp/data/cache_server.log
+    if [ $cachepath == '1' ]; then
+        echo "0 MISS" > $cache_path/cache_server.log
+    else
+        echo "0 MISS" > $cache_path2/cache_server.log
+    fi
+    
+    # 拷贝及运行守护进程，三分钟检检查一次
+    cp ./cache_server_daemon.sh /root
+    chmod +x /root/cache_server_daemon.sh
+    echo "*/3 * * * * sh /root/cache_server_daemon.sh" >> /etc/crontabs/root
+    
+    # 启动
+    start
+}
+
+uninstall()
+{
+    # . /root/CacheServer.conf
+    
+    # 删除nginx缓存配置
+    rm /etc/nginx/vh.cache_server_by_yumi.conf
+    
+    # 删除防火墙设置
+    rm -f /etc/firewall.d/cache_server.sh
+    
+    # 删除守护进程
+    sed -i "/cache_server_daemon/d" /etc/crontabs/root
+    rm /root/cache_server_daemon.sh
+    
+    # 停止运行并重新加载nginx配置
+    stop
+    
+    # 删除备份配置
+    rm -rf /root/CacheServer.conf
+    rm -rf /root/vh.cache_server_disk.conf
+    rm -rf /root/vh.cache_server_ram.conf
+    
+    # 清空缓存和日志
+    rm -rf $cache_path/cache_server_cache
+    rm -rf $cache_path/cache_server_temp
+    rm -rf $cache_path/cache_server.log
+    rm -rf $cache_path2/cache_server_cache
+    rm -rf $cache_path2/cache_server_temp
+    rm -rf $cache_path2/cache_server.log
+    
+}
+
+start()
+{
+    . /root/CacheServer.conf
+    
+    # 设置流量转发
+    iptables -t nat -I PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 13128
+    
+    # 防止重启防火墙时设置失效，同时也能达到开机启动的效果。开机时会输出一条log来防止获取状态时显示未知。
+    if [ $cachepath == '1' ]; then
+        echo -e 'iptables -t nat -I PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 13128\necho "0 MISS" >> '$cache_path'/cache_server.log' > /etc/firewall.d/cache_server.sh
+    else
+        echo -e 'iptables -t nat -I PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 13128\necho "0 MISS" >> '$cache_path2'/cache_server.log' > /etc/firewall.d/cache_server.sh
+    fi
+    chmod +x /etc/firewall.d/cache_server.sh
+}
+
+stop()
+{
+    . /root/CacheServer.conf
+    # 取消流量转发
+    iptables -t nat -D PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 13128
+    
+    # 取消开机启动，但开机时仍会输出一条log来防止获取状态时显示未知
+    if [ $cachepath == '1' ]; then
+        echo -e 'echo "0 MISS" >> '$cache_path'/cache_server.log' > /etc/firewall.d/cache_server.sh
+    else
+        echo -e 'echo "0 MISS" >> '$cache_path2'/cache_server.log' > /etc/firewall.d/cache_server.sh
+    fi
+    
+    # 非必需。出现某些bug时使用这个可能有效。
+    nginx -s reload
+}
+
+status()
+{
+    # 读取备份的配置
+    . /root/CacheServer.conf
+    
+    # 存储位置
+    if [ $cachepath == '1' ]; then
+        cache_path_var1="内存"
+        cache_path_var2=$cache_path
+    else
+        cache_path_var1="外置存储"
+        cache_path_var2=$cache_path2
+    fi
+    
+    # 检查使用的空间大小
+    space_usage_var1=$(du $cache_path_var2/cache_server_cache/)
+    space_usage_var2=$(echo $space_usage_var1|cut -d " " -f 1)
+    let space_usage_var3=$space_usage_var2/1024
+    
+    # 统计缓存条目个数
+    item_number=$(ls -lR $cache_path_var2/cache_server_cache/|grep "^-"|wc -l)
+    
+    # 动态修改key缓存（对于1.3版本，这个暂时不需要）
+    # mem_cache=$(awk 'BEGIN{print int('$item_number'/8000+1) }') # 智能计算key缓存的大小，对于正常情况，这个值都是1M。
+    # sed -i "s/keys_zone=cache_server_by_yumi:[0-9]*m/keys_zone=cache_server_by_yumi:"$mem_cache"m/g" $conf_path
+    
+    # 计算命中率
+    hit_rate_var1=$(grep -c '' $cache_path_var2/cache_server.log) # 总请求数目
+    hit_rate_var2=$(grep -c 'HIT' $cache_path_var2/cache_server.log) # 缓存命中数目
+    hit_rate_var3=$(awk 'BEGIN{print '$hit_rate_var2'/'$hit_rate_var1'*100 }') # 缓存命中率
+    
+    # 计算流量
+    traffic_var1=$(grep 'HIT' $cache_path_var2/cache_server.log|awk 'BEGIN{sum=0}{sum+=$1}END{print sum/1024/1024}') # 节省流量
+    traffic_var2=$(awk 'BEGIN{sum=0}{sum+=$1}END{print sum/1024/1024+0.0001}' $cache_path_var2/cache_server.log) # 总流量
+    traffic_var3=$(awk 'BEGIN{print '$traffic_var1'/'$traffic_var2'*100 }') # 流量节省率
+    
+    # 获取CPU负载
+    cpu_load_var1=$(uptime |sed 's/.*age: //g')
+    
+    
+    
+    # 检查iptables（插件运行情况）
+    iptables_var1=$(iptables -t nat -L PREROUTING)
+    iptables_var2=$(echo "$iptables_var1"|grep 13128)
+    if [ -n "$iptables_var2" ];
+    then
+        status_var="running"
+    else
+        status_var="stopped"
+    fi
+    
+    # 返回信息
+    echo '{ "status" : "'$status_var'", "msg" : "'\
+        '存储位置：'$cache_path_var1'</br>'\
+        '最长缓存时间：'$cachetime'h</br>'\
+        '最小触发次数：'$cacheminuses'</br>'\
+        '缓存文件类型：'$cachefiletype'</br>'\
+        '缓存条目数量：'$item_number'条</br>'\
+        '缓存文件总大小：'$space_usage_var3'M/'$cachespace'M</br>'\
+        '命中次数/总请求次数：'$hit_rate_var2'/'$hit_rate_var1'</br>'\
+        '缓存命中率：'$hit_rate_var3'%</br>'\
+        '节省流量/总流量：'$traffic_var1'M/'$traffic_var2'M</br>'\
+        '流量节省率：'$traffic_var3'%</br>'\
+        '服务器负载：'$cpu_load_var1'" }'
+
+}
+
+reconfigure()
+{
+    cp ./CacheServer.conf /root
+    . CacheServer.conf
+    if [ $cachepath == '1' ]; then
+        cp /root/vh.cache_server_ram.conf $conf_path
+        # 智能设置缓存空间大小
+        cache_space_var1=$(df -h|grep -E '(tmpfs.*tmp)'|awk '{print $2}')
+        cache_space_var2=${cache_space_var1%M*}
+        cache_space_var3=$(awk 'BEGIN{print int('$cache_space_var2'/1.5-3)}')
+        echo "cachepath='1'" >> /root/CacheServer.conf
+        echo "cachespace='"$cache_space_var3"'" >> /root/CacheServer.conf
+        sed -i "s/max_size=[0-9]*m/max_size="$cache_space_var3"m/g" $conf_path
+    else
+        cp /root/vh.cache_server_disk.conf $conf_path
+        # 如果是外置存储，可以修改缓存空间大小
+        cache_space_var3=$cachespace
+        # 如果是外置存储，需要自动修改mem_cache
+        item_number=$(ls -lR $cache_path_var2/cache_server_cache/|grep "^-"|wc -l)
+        mem_cache=$(awk 'BEGIN{print int('$item_number'/8000+2) }') 
+        sed -i "s/keys_zone=cache_server_by_yumi:[0-9]*m/keys_zone=cache_server_by_yumi:"$mem_cache"m/g" $conf_path
+        echo "cachepath='0'" >> /root/CacheServer.conf
+    fi
+    
+
+    sed -i "s/inactive=[0-9]*h/inactive="$cachetime"h/g" $conf_path
+    sed -i "s/proxy_cache_valid  200 [0-9]*h/proxy_cache_valid  200 "$cachetime"h/g" $conf_path
+    
+    cache_file_type=$(echo $cachefiletype|sed "s/,/|/g")
+    sed -i "s/location ~\* \\\\.([0-9a-zA-Z|]*)\\$ {/location ~\* \\\\.("$cache_file_type")\\$ {/g" $conf_path
+    
+    sed -i "s/proxy_cache_min_uses [0-9]*/proxy_cache_min_uses "$cacheminuses"/g" $conf_path
+    
+    nginx -s reload
+}

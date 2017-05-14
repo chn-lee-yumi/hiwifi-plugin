@@ -1,0 +1,12 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+
+start() {
+	lighttpd -f /etc/lighttpd/lighttpd.conf &
+}
+
+stop() {
+	killall lighttpd
+}
+

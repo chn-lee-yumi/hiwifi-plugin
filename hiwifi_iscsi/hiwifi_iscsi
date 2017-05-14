@@ -1,0 +1,22 @@
+#!/bin/sh /etc/rc.common  
+   
+START=99
+STOP=89
+   
+start() {          
+    cd /tmp/data/hiwifi_iscsi
+    . iSCSI-Target.conf
+    ./tgtd
+    sleep 1
+    ./tgtadm --lld iscsi --mode target --op new --tid 1 --targetname hiwifi-iscsi
+    ./tgtadm --lld iscsi --mode logicalunit --op new --tid 1 --lun 1 --backing-store /tmp/data/filetransit0/hiwifi_iscsi/disk.img
+    ./tgtadm --lld iscsi --mode target --op bind --tid=1 --initiator-address 0.0.0.0/1
+    ./tgtadm --lld iscsi --mode target --op bind --tid=1 --initiator-address 128.0.0.0/1
+    ./tgtadm --lld iscsi --mode account --op new --user $username --password $password
+    ./tgtadm --lld iscsi --mode account --op bind --tid 1 --user $username
+    # ./tgtadm --lld iscsi --mode target --op show
+}
+   
+stop() {            
+    killall -9 tgtd
+}

@@ -1,0 +1,56 @@
+{
+    "manifest_version": "2.0.0",
+    "supportgetappstatus": 1,
+    "requirements": {
+        "support_refconfig":1
+    },
+    "app_install_location": 0,
+    "configuration": [
+        {
+            "name": "缓存时间",
+            "type": "text",
+            "variable": "cachetime",
+            "defaultvalue": "72",
+            "required": 1,
+            "description": "单位：小时",
+            "regexpression": "^[0-9]*$"
+        },
+        {
+            "name": "最小请求次数",
+            "type": "text",
+            "variable": "cacheminuses",
+            "defaultvalue": "1",
+            "required": 1,
+            "description": "<br>当一个请求达到这个次数后就会被缓存，缓存空间小、人数多时可适量调大。",
+            "regexpression": "^[0-9]*$"
+        },
+        {
+            "name": "缓存文件类型",
+            "type": "text",
+            "variable": "cachefiletype",
+            "defaultvalue": "html,htm,css,js,ttf,svg,jpg,jpeg,gif,png,ico,bmp,tiff",
+            "required": 1,
+            "description": "<br>不同文件后缀用,隔开，例子：html,htm,css,js",
+            "regexpression": "^[0-9a-zA-Z,]*$"
+        },
+        {
+            "name": "存储位置",
+            "type": "radio",
+            "variable": "cachepath",
+            "choices": "内存=1;外置存储=0",
+            "defaultvalue": 1,
+            "required": 1,
+            "description": "<br>内存速度快容量小，外置存储速度慢容量大。<br>建议选择内存，带宽大于4M选择外置存储可能会降低你的网速。<br>注：外置存储必须是ext2/3/4格式的！否则无法上网。"
+        },
+        {
+            "name": "缓存空间大小",
+            "type": "text",
+            "variable": "cachespace",
+            "defaultvalue": "1024",
+            "required": 1,
+            "description": "单位：M。这个选项仅在选择外置存储时有效。",
+            "regexpression": "^[0-9]*$"
+        }
+    ]
+}
+

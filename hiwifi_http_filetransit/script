@@ -1,0 +1,69 @@
+#!/bin/sh
+
+# TODO：none
+
+conf_path="/etc/lighttpd/lighttpd.conf"
+auth_path="/etc/lighttpd/lighttpd.user"
+setting_path="/etc/market/http_filetransit.conf"
+
+install()
+{
+    cp -r etc /
+    cp -r usr /
+    cp libpcre.so.1 /lib
+    cp http_filetransit.conf $setting_path
+    configure
+    chmod +x /usr/sbin/lighttpd
+    chmod +x /etc/init.d/lighttpd
+    start
+    return 0
+}
+
+uninstall()
+{
+    stop
+    rm /etc/init.d/lighttpd
+    rm -rf /etc/lighttpd
+    rm -rf /usr/lib/lighttpd
+    rm /usr/sbin/lighttpd
+    rm $setting_path
+    return 0
+}
+
+start()
+{
+    /etc/init.d/lighttpd start
+    /etc/init.d/lighttpd enable
+}
+
+stop()
+{
+    /etc/init.d/lighttpd stop
+    /etc/init.d/lighttpd disable
+}
+
+status()
+{
+    . $setting_path
+    if [ $(ps|grep 'lighttpd'|wc -l) -ge "2" ]; then
+        status="running"
+    else
+        status="stopped"
+    fi
+    lan_ip=$(ifconfig br-lan|grep 'inet addr'|awk '{print $2}'|tr -d 'addr:')
+    echo '{ "status" : "'$status'", "msg" : "<a href=\"http://'$lan_ip':'$port'\" target=\"_blank\">http://'$lan_ip':'$port'</a>" }'
+}
+
+reconfigure()
+{
+    stop
+    configure
+    start
+}
+
+configure(){
+    . $setting_path
+    echo $username:$password > $auth_path
+    sed -i "s/server.port = [0-9]*/server.port = $port/g" $conf_path
+    sed -i "s/\"require\" => \"user=.*\"/\"require\" => \"user=$username\"/g" $conf_path
+}

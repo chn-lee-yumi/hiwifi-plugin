@@ -1,0 +1,155 @@
+<%
+local res_ver = luci.sys.exec("wget http://139.129.20.107/hiwifi_contorl_panel/ -O -")
+%>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        
+        <title>HiWiFi Server Control Panel</title>
+        
+        <link href="../../../cp/bootstrap.min.css" rel="stylesheet">
+        
+        <link href="../../../cp/dashboard.css" rel="stylesheet">
+        
+        <script src="../../../cp/jquery.min.js"></script>
+        <script src="../../../cp/bootstrap.min.js"></script>
+        
+        <script>
+            $(document).ready(function() {
+                var tool = getQueryStr("tool")
+                console.log(tool)
+                switch (tool){
+                    case "top_1":
+                        get_top_text();
+                        $("#tools_name").html("小工具（top -b -n 1）");
+                        break;
+                    case "top_2":
+                        get_top_text();
+                        setInterval(get_top_text, 1000);
+                        $("#tools_name").html("小工具（top -d 1）");
+                        break;
+                    case "df_h":
+                        $.get("get_df_h",function(text){
+                            $("#tools_text").html(text);
+                        });
+                        $("#tools_name").html("小工具（df -h）");
+                        break;
+                    case "diskstats":
+                        $.get("get_diskstats",function(text){
+                            $("#tools_text").html(text);
+                        });
+                        $("#tools_name").html("小工具（cat /proc/diskstats）");
+                        break;
+                    case "fdisk_l":
+                        $.get("get_fdisk_l",function(text){
+                            $("#tools_text").html(text);
+                        });
+                        $("#tools_name").html("小工具（fdisk -l）");
+                        break;
+                    case "storage_info":
+                        $.get("get_storage_info",function(text){
+                            $("#tools_text").html(text);
+                        });
+                        $("#tools_name").html("小工具（存储信息）");
+                        break;
+                    default:
+                        $("#tools_text").html("请在左侧导航栏选择具体的小工具。");
+                }
+            });  
+            
+            function get_top_text() {
+                $.get("get_top_text",function(top_info){
+                    $("#tools_text").html(top_info);
+                });
+            }
+            
+            
+            var LocString = String(window.document.location.href); 
+            function getQueryStr(str) { 
+                var rs = new RegExp("(^|)" + str + "=([^&]*)(&|$)", "gi").exec(LocString), tmp; 
+                if (tmp = rs) { 
+                    return tmp[2]; 
+                } 
+                // parameter cannot be found 
+                return ""; 
+            } 
+        </script>
+        
+    </head>
+    
+    <body>
+        
+        <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+          <div class="container-fluid">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="#">HiWiFi Server Control Panel - 我就是想把极路由变成服务器</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+              <ul class="nav navbar-nav navbar-right">
+                <li><a href="#">资源文件（控制面板页面）信息</a></li>
+                <li><a href="#">当前版本:20170309</a></li>
+                <li><a href="#">最新版本:<%=res_ver%></a></li>
+                <li><a href="update_res" target="_blank">更新资源文件</a></li>
+              </ul>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-sm-3 col-md-2 sidebar">
+                  <ul class="nav nav-sidebar">
+                    <li><a href="../cp"><strong>服务器概况</strong></a></li>
+                  </ul>
+                  <ul class="nav nav-sidebar">
+                    <li><a href="monitor"><strong>服务器监控</strong></a></li>
+                  </ul>
+                  <ul class="nav nav-sidebar">
+                    <li class="active"><a href="tools"><strong>小工具</strong></a></li>
+                    <li><a href="tools?tool=top_1">top -b -n 1</a></li>
+                    <li><a href="tools?tool=top_2">top -d 1</a></li>
+                    <li><a href="tools?tool=df_h">df -h</a></li>
+                    <li><a href="tools?tool=diskstats">cat /proc/diskstats</a></li>
+                    <li><a href="tools?tool=fdisk_l">fdisk -l</a></li>
+                    <li><a href="tools?tool=storage_info">存储信息 （测试）</a></li>
+                  </ul>
+                  <ul class="nav nav-sidebar">
+                    <li><a href="function"><strong>服务器功能</strong></a></li>
+                    <li><a href="function#nassan">NAS/SAN</a></li>
+                    <li><a href="function#web">Web服务</a></li>
+                    <li><a href="function#db">数据库</a></li>
+                    <li><a href="function#other">其它</a></li>
+                    <li><a href="function#opt">性能优化</a></li>
+                    <li><a href="function#security">安全</a></li>
+                  </ul>
+                </div>
+                
+                <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+    
+                        <div class="page-header">
+                            <h1 id="tools_name">小工具</h1>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <p id="tools_text" class="text-info" style="font-family:黑体"></p>
+                            </div>
+                        </div>
+                    
+                </div>
+            </div>
+        </div>
+        
+    </body>
+
+</html>

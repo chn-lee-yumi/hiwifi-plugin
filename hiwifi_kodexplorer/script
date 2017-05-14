@@ -1,0 +1,61 @@
+#!/bin/sh
+
+install(){
+    cp vh.kod_by_yumi.conf /etc/nginx/
+    cd /tmp/data
+    # 安装php7
+    wget http://139.129.20.107/hiwifi-plugin-master/php7.tgz
+    tar xzf php7.tgz
+    cd php7
+    chmod +x php7_script.sh
+    . php7_script.sh install
+    /etc/init.d/php7-fpm enable
+    # 安装KODExplorer
+    cd /tmp/data
+    wget http://139.129.20.107/hiwifi-plugin-master/kodexplorer.tgz
+    mkdir kodexplorer
+    tar xzf kodexplorer.tgz -C kodexplorer
+    chmod -R 777 kodexplorer
+    rm kodexplorer.tgz
+    nginx -s reload
+    return 0
+}
+
+uninstall(){
+    stop
+    /etc/init.d/samba reload
+    rm -rf /tmp/data/kodexplorer
+    rm /etc/nginx/vh.kod_by_yumi.conf
+    nginx -s reload
+    /tmp/data/php7/php7_script.sh uninstall
+    return 0
+}
+
+start() {
+    uci set samba.kodexplorer=sambashare
+    uci set samba.kodexplorer.name=KODExplorer
+    uci set samba.kodexplorer.read_only=no
+    uci set samba.kodexplorer.create_mask=0777
+    uci set samba.kodexplorer.dir_mask=0777
+    uci set samba.kodexplorer.path="/tmp/data/KODExplorer"
+    uci set samba.kodexplorer.guest_ok=yes
+    uci commit samba
+    /etc/init.d/samba reload
+    /etc/init.d/php7-fpm restart # 针对奇怪的bug
+	return 0
+}
+
+stop() {
+    uci delete samba.kodexplorer
+    uci commit samba
+    /etc/init.d/samba reload
+	return 0
+}
+
+status() {
+	if [ $(uci get samba.kodexplorer) = "sambashare" ]; then
+		echo '{ "status" : "running", "msg" : "http://你的路由器IP:8080/</br>芒果云正在运行中，且网站目录匿名共享已开启</br>\\hiwifi.com\KODExplorer</br>点击停止可关闭网站目录匿名共享" }'
+	else
+		echo '{ "status" : "stopped", "msg" : "http://你的路由器IP:8080/</br>芒果云仍在运行中，但网站目录匿名共享已关闭</br>点击启动可开启网站目录匿名共享" }'
+	fi	
+}

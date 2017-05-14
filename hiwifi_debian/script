@@ -1,0 +1,135 @@
+#!/bin/sh
+
+# TODO 重复安装时不覆盖，给解压提示
+
+controller_path=/usr/lib/lua/luci/controller/admin_web/debian.lua
+view_path=/usr/lib/lua/luci/view/admin_web/debian.htm
+daemon_path=/etc/init.d/hiwifi_debian
+img_path=/tmp/data/filetransit0/hiwifi_debian/disk.img
+mount_path=/tmp/storage/debian
+
+autostart(){
+    # 切换自启状态
+    if [ -f "/etc/rc.d/S99hiwifi_debian" ]; then # 判断自启文件是否存在
+        $daemon_path disable
+    else
+        $daemon_path enable
+    fi
+}
+
+autostart_status(){
+    # 监测自启状态
+    if [ -f "/etc/rc.d/S99hiwifi_debian" ]; then
+        echo "开机启动"
+    else
+        echo "不开机启动"
+    fi
+}
+
+mount_disk(){
+    losetup /dev/loop4 $img_path
+    mkdir $mount_path
+    mount /dev/loop4 $mount_path
+}
+
+
+install_debian(){
+    # 使用/dev/loop4
+    echo y | mkfs.ext4 $img_path
+    mount_disk
+    cd /tmp/data/filetransit0/hiwifi_debian
+    tar xzf mipsel_debian.tgz -C $mount_path
+}
+
+run_debian(){
+    mount_disk
+    cd $mount_path
+    mount /dev mipsel_debian/dev
+    mount /sys mipsel_debian/sys
+    mount /proc mipsel_debian/proc
+    mount /dev/pts mipsel_debian/dev/pts
+    cp /proc/mounts mipsel_debian/etc/mtab
+    chroot mipsel_debian /etc/init.d/ssh restart
+    chroot mipsel_debian /bin/sh /etc/rc.local
+    # 更新：防止fopen permission denyed
+    chroot mipsel_debian chown -R man:root /var/cache/man
+    #使用ssh连接hiwifi:10022
+    #默认root密码：toor
+}
+
+stop_debian(){
+    # 停止方法可以参考linuxonandroid，暂时不想写，反正开着也没啥问题。
+    # 重启路由可以停止
+    # 这里只关闭ssh，免得一些强迫症不爽
+    cd $mount_path
+    chroot mipsel_debian /etc/init.d/ssh stop
+}
+
+kod_start(){
+    cd $mount_path
+    chroot mipsel_debian /etc/init.d/nginx start
+    chroot mipsel_debian /etc/init.d/php5-fpm start
+}
+
+kod_stop(){
+    cd $mount_path
+    chroot mipsel_debian /etc/init.d/nginx stop
+    chroot mipsel_debian /etc/init.d/php5-fpm stop
+}
+
+
+install(){
+    # 将下载好的镜像压缩文件mipsel_debian.tgz拷贝到局域网文件共享的hiwifi_debian文件夹
+    # 安装程序会新建一个ext4的img，并把镜像内容复制进去
+    . TryDebian.conf
+    cp debian.lua $controller_path
+    cp debian.htm $view_path
+    cp hiwifi_debian $daemon_path
+    chmod +x $daemon_path
+    rm /var/run/luci-indexcache
+    mkdir /tmp/data/filetransit0/hiwifi_debian
+    if [ ! -f $img_path ]; then # 判断img文件是否存在，如果不存在就生成一个
+        dd if=/dev/zero of=$img_path bs=1M count=$diskspace &
+    fi
+    opkg update
+    opkg install losetup
+    return 0
+}
+
+uninstall(){
+    # 重启路由器后删除局域网文件共享的hiwifi_debian文件夹即可
+    # 若想重装debian，重启路由器后删除disk.img再进行安装
+    rm $controller_path
+    rm $view_path
+    $daemon_path stop
+    $daemon_path disable
+    rm $daemon_path
+    return 0
+}
+
+start() {
+    run_debian
+    return 0
+}
+
+stop() {
+    stop_debian
+    return 0
+}
+
+status() {
+    # 如果img正在生成，返回生成进度
+    if [ $(ps|grep 'dd if'|wc -l) = "2" ]; then
+        echo '{ "status" : "running", "msg" : "磁盘文件正在生成，大概需要1-5分钟的时间。请过一段时间后刷新页面。" }'
+    elif [ $(ps|grep "tar xzf mipsel_debian.tgz"|wc -l) -ge 2 ]; then
+        echo '{ "status" : "running", "msg" : "镜像文件正在解压，大概需要1-3分钟的时间。请过一段时间后刷新页面。" }'
+    else
+    # 否则返回插件状态
+        lan_ip=$(ifconfig br-lan|grep 'inet addr'|awk '{print $2}'|tr -d 'addr:')
+        if [ $(ps|grep '/usr/sbin/sshd'|wc -l) -ge "2" ]; then
+            echo '{ "status" : "running", "msg" : "Debian已启动，请使用ssh登录<br>ip地址：'$lan_ip'<br>默认端口：10022<br>root用户默认密码：toor<br>点击打开Debian控制面板： <a href=\"http://'$lan_ip'/cgi-bin/turbo/debian\" target=\"_blank\">http://'$lan_ip'/cgi-bin/turbo/debian</a>" }'
+        else
+            echo '{ "status" : "stopped", "msg" : "本插件依赖另外两个插件：“局域网文件中转站”和“服务器控制面板”（分类都为“管理工具”）。<br>如果是第一次安装，请在控制面板点击安装Debian。<br>如果已经安装过，请直接点击启动按钮启动Debian。<br>点击打开Debian控制面板： <a href=\"http://'$lan_ip'/cgi-bin/turbo/debian\" target=\"_blank\">http://'$lan_ip'/cgi-bin/turbo/debian</a>" }'
+        fi
+    fi
+}

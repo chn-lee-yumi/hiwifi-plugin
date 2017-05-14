@@ -1,0 +1,19 @@
+{
+    "manifest_version": "2.0.0",
+    "supportgetappstatus": 1,
+    "requirements": {
+        "support_refconfig":1
+    },
+    "configuration": [
+        {
+            "name": "磁盘大小",
+            "type": "text",
+            "variable": "diskspace",
+            "defaultvalue": "1024",
+            "required": 1,
+            "description": "单位：M。<br>请至少分配500M。不要超过你的存储设备的可用空间大小。新手建议分配2048M。如果存储设备使用FAT32文件系统，最大只能创建4G096M的磁盘。",
+            "regexpression": "^[0-9]*$"
+        }
+    ]
+}
+

@@ -1,0 +1,35 @@
+{
+    "manifest_version": "2.0.0",
+    "supportgetappstatus": 1,
+    "requirements": {
+        "support_refconfig":1
+    },
+    "configuration": [
+        {
+            "name": "磁盘大小",
+            "type": "text",
+            "variable": "diskspace",
+            "defaultvalue": "1024",
+            "required": 1,
+            "description": "单位：M。注：请不要超过存储设备可用空间大小。如果存储设备使用FAT32文件系统，最大只能创建4096M的磁盘。",
+            "regexpression": "^[0-9]*$"
+        },
+        {
+            "name": "用户名",
+            "type": "text",
+            "variable": "username",
+            "defaultvalue": "admin",
+            "required": 1,
+            "description": "登录时使用的用户名。"
+        },
+        {
+            "name": "密码",
+            "type": "text",
+            "variable": "password",
+            "defaultvalue": "123456123456",
+            "required": 1,
+            "description": "登录时使用的密码。长度需要为12-16位，否则无法连接。"
+        }
+    ]
+}
+

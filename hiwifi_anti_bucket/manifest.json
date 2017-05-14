@@ -1,0 +1,19 @@
+{
+    "manifest_version": "2.0.0",
+    "supportgetappstatus": 1,
+    "requirements": {
+        "support_refconfig":1
+    },
+    "app_install_location": 0,
+    "configuration": [
+        {
+            "name": "关键词",
+            "type": "txtfile",
+            "variable": "keywords",
+            "defaultvalue": "(360|baidu|2345).*\\.(exe|apk|rar|zip)",
+            "required": 1,
+            "description": "<br>请使用正则表达式，不区分大小写。请一行写完、结尾不要换行。"
+        }
+    ]
+}
+

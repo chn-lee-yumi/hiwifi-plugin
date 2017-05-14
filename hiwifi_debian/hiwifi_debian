@@ -1,0 +1,12 @@
+#!/bin/sh /etc/rc.common  
+   
+START=99
+STOP=89
+   
+start() {
+    . /etc/market/TryDebian.script && start
+}
+   
+stop() {
+    . /etc/market/TryDebian.script && stop
+}

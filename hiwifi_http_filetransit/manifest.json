@@ -1,0 +1,35 @@
+{
+    "manifest_version": "2.0.0",
+    "supportgetappstatus": 1,
+    "requirements": {
+        "support_refconfig":1
+    },
+    "app_install_location": 0,
+    "configuration": [
+        {
+            "name": "用户名",
+            "type": "text",
+            "variable": "username",
+            "defaultvalue": "admin",
+            "required": 1,
+            "description": "登录网页用的用户名"
+        },
+        {
+            "name": "密码",
+            "type": "text",
+            "variable": "password",
+            "defaultvalue": "666",
+            "required": 1,
+            "description": "登录网页用的密码名"
+        },
+        {
+            "name": "端口",
+            "type": "text",
+            "variable": "port",
+            "defaultvalue": "8889",
+            "required": 1,
+            "description": "HTTP服务端口，请不要和已使用的端口冲突"
+        }
+    ]
+}
+

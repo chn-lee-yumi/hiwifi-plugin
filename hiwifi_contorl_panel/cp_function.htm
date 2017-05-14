@@ -1,0 +1,307 @@
+<%
+local res_ver = luci.sys.exec("wget http://139.129.20.107/hiwifi_contorl_panel/ -O -")
+%>
+<!DOCTYPE html>
+<html>
+     <!--TODO：能检测到功能是否已安装。-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        
+        <title>HiWiFi Server Control Panel</title>
+        
+        <link href="../../../cp/bootstrap.min.css" rel="stylesheet">
+        
+        <link href="../../../cp/dashboard.css" rel="stylesheet">
+        
+        <script src="../../../cp/jquery.min.js"></script>
+        <script src="../../../cp/bootstrap.min.js"></script>
+        
+        <script>
+            $(document).ready(function(){
+                
+                $.get("samba_opt_status",function(data,status){
+                    $("#samba_opt_status").html("当前状态："+data);
+                });
+                
+                $.get("mem_opt_status",function(data,status){
+                    $("#mem_opt_status").html("当前状态："+data);
+                });
+                
+                $.get("ping_opt_status",function(data,status){
+                    $("#ping_opt_status").html("当前状态："+data);
+                });
+                
+                $("#samba_opt_switch").click(function(){
+                    $.get("samba_opt_switch",function(data,status){
+                        $.get("samba_opt_status",function(data,status){
+                            $("#samba_opt_status").html("当前状态："+data);
+                        });
+                    });
+                });
+                
+                $("#mem_opt_switch").click(function(){
+                    $.get("mem_opt_switch",function(data,status){
+                        $.get("mem_opt_status",function(data,status){
+                            $("#mem_opt_status").html("当前状态："+data);
+                        });
+                    });
+                });
+                
+                $("#ping_opt_switch").click(function(){
+                    $.get("ping_opt_switch",function(data,status){
+                        $.get("ping_opt_status",function(data,status){
+                            $("#ping_opt_status").html("当前状态："+data);
+                        });
+                    });
+                });
+                
+            });
+        </script>
+    </head>
+    
+    <body>
+        
+        <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+          <div class="container-fluid">
+            <div class="navbar-header">
+              <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="navbar-brand" href="#">HiWiFi Server Control Panel - 我就是想把极路由变成服务器</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+              <ul class="nav navbar-nav navbar-right">
+                <li><a href="#">资源文件（控制面板页面）信息</a></li>
+                <li><a href="#">当前版本:20170309</a></li>
+                <li><a href="#">最新版本:<%=res_ver%></a></li>
+                <li><a href="update_res" target="_blank">更新资源文件</a></li>
+              </ul>
+            </div>
+          </div>
+        </nav>
+        
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-sm-3 col-md-2 sidebar">
+                  <ul class="nav nav-sidebar">
+                    <li><a href="../cp"><strong>服务器概况</strong></a></li>
+                  </ul>
+                  <ul class="nav nav-sidebar">
+                    <li><a href="monitor"><strong>服务器监控</strong></a></li>
+                  </ul>
+                  <ul class="nav nav-sidebar">
+                    <li><a href="tools"><strong>小工具</strong></a></li>
+                    <li><a href="tools?tool=top_1">top -b -n 1</a></li>
+                    <li><a href="tools?tool=top_2">top -d 1</a></li>
+                    <li><a href="tools?tool=df_h">df -h</a></li>
+                    <li><a href="tools?tool=diskstats">cat /proc/diskstats</a></li>
+                    <li><a href="tools?tool=fdisk_l">fdisk -l</a></li>
+                    <li><a href="tools?tool=storage_info">存储信息 （测试）</a></li>
+                  </ul>
+                  <ul class="nav nav-sidebar">
+                    <li class="active"><a href="function"><strong>服务器功能</strong></a></li>
+                    <li><a href="function#nassan">NAS/SAN</a></li>
+                    <li><a href="function#web">Web服务</a></li>
+                    <li><a href="function#db">数据库</a></li>
+                    <li><a href="function#other">其它</a></li>
+                    <li><a href="function#opt">性能优化</a></li>
+                    <li><a href="function#security">安全</a></li>
+                  </ul>
+                </div>
+                
+                <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+    
+                        <div class="page-header">
+                            <h1>服务器功能</h1>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h3 class="text-info">在这里，你可以给你的服务器添加或删除各种功能。</h3>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <p>颜色说明： <span class="label label-success">可以安装</span> <!--<span class="label label-danger">暂无插件</span>--> <span class="label label-warning">需要极先锋权限</span></p>
+                            </div>
+                        </div>
+                        
+                        <div class="page-header">
+                            <h2 id="nassan">NAS/SAN（网络附加存储/存储区域网络）</h2>
+                        </div>
+                        
+                        <div class="row well">
+                            <div class="col-md-2">
+                                <a href="https://app.hiwifi.com/plugin?sid=770934750" target="_blank"><h3><span class="label label-success">FTP服务器</span></h3></a>
+                            </div>
+                            <div class="col-md-10">
+                                <p>FTP 是File Transfer Protocol（文件传输协议）的英文简称，而中文简称为“文传协议”。用于Internet上的控制文件的双向传输。同时，它也是一个应用程序（Application）。基于不同的操作系统有不同的FTP应用程序，而所有这些应用程序都遵守同一种协议以传输文件。在FTP的使用当中，用户经常遇到两个概念："下载"（Download）和"上传"（Upload）。"下载"文件就是从远程主机拷贝文件至自己的计算机上；"上传"文件就是将文件从自己的计算机中拷贝至远程主机上。用Internet语言来说，用户可通过客户机程序向（从）远程主机上传（下载）文件。</p>
+                            </div>
+                        </div>
+                        
+                        <!--
+                        <div class="row well">
+                            <div class="col-md-2">
+                                <a href="#"><h3><span class="label label-danger">NFS服务器</span></h3></a>
+                            </div>
+                            <div class="col-md-10">
+                                <p>NFS（Network File System）即网络文件系统，它允许网络中的计算机之间通过TCP/IP网络共享资源。<br>在NFS的应用中，本地NFS的客户端应用可以透明地读写位于远端NFS服务器上的文件，就像访问本地文件一样。</p>
+                            </div>
+                        </div>
+                        -->
+                        
+                        <div class="row well">
+                            <div class="row">
+                                <div class="col-md-2">
+                                    <a href="https://app.hiwifi.com/plugin?sid=327613435" target="_blank"><h3><span class="label label-success">SMB/CIFS服务器</span></h3></a>
+                                </div>
+                                <div class="col-md-10">
+                                    <p>CIFS 是一个新提出的协议，它使程序可以访问远程Internet计算机上的文件并要求此计算机提供服务。CIFS 使用客户/服务器模式。客户程序请求远在服务器上的服务器程序为它提供服务。服务器获得请求并返回响应。CIFS是公共的或开放的SMB协议版本，并由Microsoft使用。SMB协议在局域网上用于服务器文件访问和打印的协议。像SMB协议一样，CIFS在高层运行，而不像TCP/IP协议那样运行在底层。CIFS可以看做是应用程序协议如文件传输协议和超文本传输协议的一个实现。</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        
+                        
+                        <div class="row well">
+                            <div class="col-md-2">
+                                <a href="https://app.hiwifi.com/plugin?sid=643911329" target="_blank"><h3><span class="label label-warning">iSCSI Target</span></h3></a>
+                            </div>
+                            <div class="col-md-10">
+                                <p>iSCSI技术是一种由IBM公司研究开发的，是一个供硬件设备使用的可以在IP协议的上层运行的SCSI指令集，这种指令集合可以实现在IP网络上运行SCSI协议，使其能够在诸如高速千兆以太网上进行路由选择。iSCSI技术是一种新储存技术，该技术是将现有SCSI接口与以太网络(Ethernet)技术结合，使服务器可与使用IP网络的储存装置互相交换资料。</p>
+                            </div>
+                        </div>
+                        
+                        <div class="page-header">
+                            <h2 id="web">Web服务</h2>
+                        </div>
+                        
+                        <div class="row well">
+                            <div class="col-md-2">
+                                <a href="https://app.hiwifi.com/plugin?sid=576758378" target="_blank"><h3><span class="label label-warning">Nginx+PHP5</span></h3></a>
+                            </div>
+                            <div class="col-md-10">
+                                <p>Nginx ("engine x") 是一个高性能的HTTP和反向代理服务器，也是一个IMAP/POP3/SMTP服务器。Nginx是由Igor Sysoev为俄罗斯访问量第二的Rambler.ru站点开发的，第一个公开版本0.1.0发布于2004年10月4日。其将源代码以类BSD许可证的形式发布，因它的稳定性、丰富的功能集、示例配置文件和低系统资源的消耗而闻名。其特点是占有内存少，并发能力强，事实上nginx的并发能力确实在同类型的网页服务器中表现较好，中国大陆使用nginx网站用户有：百度、京东、新浪、网易、腾讯、淘宝等。</p>
+                            </div>
+                        </div>
+                        
+                        <div class="page-header">
+                            <h2 id="db">数据库</h2>
+                        </div>
+                        
+                        <div class="row well">
+                            <div class="col-md-2">
+                                <a href="https://app.hiwifi.com/plugin?sid=496962172" target="_blank"><h3><span class="label label-warning">MySQL服务器</span></h3></a>
+                            </div>
+                            <div class="col-md-10">
+                                <p>MySQL是一个关系型数据库管理系统。</p>
+                            </div>
+                        </div>
+                        
+                        <div class="page-header">
+                            <h2 id="other">其它</h2>
+                        </div>
+                        
+                        <div class="row well">
+                            <div class="col-md-2">
+                                <a href="https://app.hiwifi.com/plugin?sid=438262738" target="_blank"><h3><span class="label label-success">KMS服务器</span></h3></a>
+                            </div>
+                            <div class="col-md-10">
+                                <p>可以用于激活VOL版的Windows或Office。</p>
+                            </div>
+                        </div>
+                        
+                        <div class="row well">
+                            <div class="col-md-2">
+                                <a href="https://app.hiwifi.com/plugin?sid=937247062" target="_blank"><h3><span class="label label-success">VPN服务器</span></h3></a>
+                            </div>
+                            <div class="col-md-10">
+                                <p>支持PPTP和L2TP（可同时启用）。</p>
+                            </div>
+                        </div>
+                        
+                        <div class="row well">
+                            <div class="col-md-2">
+                                <a href="https://app.hiwifi.com/plugin?sid=28" target="_blank"><h3><span class="label label-success">端口映射/DMZ主机</span></h3></a>
+                            </div>
+                            <div class="col-md-10">
+                                <p>设置一台DMZ主机或设置一些端口映射。</p>
+                            </div>
+                        </div>
+                        
+                        <div class="row well">
+                            <div class="col-md-2">
+                                <a href="https://app.hiwifi.com/plugin?sid=321256294" target="_blank"><h3><span class="label label-success">Ngrokc客户端</span></h3></a>
+                            </div>
+                            <div class="col-md-10">
+                                <p>ngrok能使你从公网访问内网的机器。ngrokc是c语言版的ngrok客户端。</p>
+                            </div>
+                        </div>
+                        
+                        <div class="row well">
+                            <div class="col-md-2">
+                                <a href="https://app.hiwifi.com/plugin?sid=38" target="_blank"><h3><span class="label label-success">HiWiFi动态域名</span></h3></a>
+                            </div>
+                            <div class="col-md-10">
+                                <p>极路由的动态域名服务，域名的TTL暂定为60秒。</p>
+                            </div>
+                        </div>
+                        
+                        <div class="row well">
+                            <div class="col-md-2">
+                                <a href="https://app.hiwifi.com/plugin?sid=100689851" target="_blank"><h3><span class="label label-success">DNSPod动态域名</span></h3></a>
+                            </div>
+                            <div class="col-md-10">
+                                <p>DNSPod的动态域名服务。</p>
+                            </div>
+                        </div>
+                        
+                        <div class="row well">
+                            <div class="col-md-2">
+                                <a href="https://app.hiwifi.com/plugin?sid=365236243" target="_blank"><h3><span class="label label-warning">Debian系统</span></h3></a>
+                            </div>
+                            <div class="col-md-10">
+                                <p>在服务器上运行Debian系统。 <span><a href="../debian"><button type="button" class="btn btn-xs btn-default">点击打开Debian控制面板</button></a></span></p>
+                            </div>
+                        </div>
+                        
+                        <div class="page-header">
+                            <h2 id="opt">性能优化</h2>
+                        </div>
+                        
+                        <div class="row well">
+                            <div class="col-md-12">
+                                <h3><span class="label label-info">Samba优化</span></h3>
+                                <p><span><strong>打开这项优化，可能会提高传输文件时的读写性能。</strong></span> <span id="samba_opt_status"></span> <span><button id="samba_opt_switch" type="button" class="btn btn-xs btn-default">打开/关闭</button></span></p>
+                            </div>
+                            <div class="col-md-12">
+                                <h3><span class="label label-info">内存优化</span></h3>
+                                <p><span><strong>打开这项优化，会让路由器将更多的内存用作缓存（内存不足时会自动释放）。能略微提高Samba传输文件时的性能（与Samba优化结合使用，效果更佳）。</strong></span> <span id="mem_opt_status"></span> <span><button id="mem_opt_switch" type="button" class="btn btn-xs btn-default">打开/关闭</button></span></p>
+                            </div>
+                        </div>
+                        
+                        <div class="page-header">
+                            <h2 id="security">安全</h2>
+                        </div>
+                        
+                        <div class="row well">
+                            <div class="col-md-12">
+                                <h3><span class="label label-info">禁Ping</span></h3>
+                                <p><span><strong>打开这个选项，服务器将不会理会 ICMP Echo 报文，其它机器将不能用ping命令发现服务器。可以避开一些漏洞扫描工具的扫描。</strong></span> <span id="ping_opt_status"></span> <span><button id="ping_opt_switch" type="button" class="btn btn-xs btn-default">打开/关闭</button></span></p>
+                            </div>
+                        </div>
+                        
+                </div>
+            </div>
+        </div>
+        
+    </body>
+
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        
+        <title>Debian控制面板</title>
+        
+        <link href="../../cp/bootstrap.min.css" rel="stylesheet">
+        <script src="../../cp/jquery.min.js"></script>
+        <script src="../../cp/bootstrap.min.js"></script>
+        <script>
+            $(document).ready(function(){
+              get_autostart_status()
+                
+              $("#install_debian").click(function(){
+                alert("开始解压，大约需要1-3分钟。\n请回到云平台查看插件状态，解压完成后会自动运行。");
+                $.get("debian/install_debian",function(data,status){});
+              });
+              
+              $("#autostart").click(function(){
+                $.get("debian/autostart",function(data,status){
+                    get_autostart_status();
+                });
+              });
+              
+              $("#kod_start").click(function(){
+                $.get("debian/kod_start",function(data,status){
+                    alert("芒果云已启动！");
+                });
+              });
+              
+              $("#kod_stop").click(function(){
+                $.get("debian/kod_stop",function(data,status){
+                    alert("芒果云已停止！");
+                });
+              });
+              
+            });
+            
+            function get_autostart_status(){
+                $.get("debian/autostart_status",function(data,status){
+                    $("#autostart_status").html("当前状态："+data)
+                });
+            }
+        </script>
+        
+    </head>
+    
+    <body>
+        <div class="col-md-10 col-md-offset-1 main">
+            
+            <div class="page-header">
+                <h1>Debian控制面板</h1>
+            </div>
+            
+            <div class="row well">
+                <div class="col-md-12">
+                    <h3>向导</h3>
+                    <p>如果是首次使用，请先下载Debian镜像(链接见下面)，然后将下载好的镜像压缩文件改名为mipsel_debian.tgz，拷贝到局域网文件共享的hiwifi_debian文件夹。拷贝完成后，点击“解压镜像”按钮。<button id="install_debian" type="button" class="btn btn-sm btn-default">解压镜像</button><br>解压时在服务器控制面板（“服务器监控”一栏）可以看到CPU使用率暴增以及磁盘有IO。解压完成后CPU使用率和磁盘IO都恢复正常。</p>
+                    <p>如果想重装Debian，请在云平台点击卸载插件，然后重启路由器，删除局域网文件共享的hiwifi_debian文件夹里的disk.img，再重新安装插件，点击“解压镜像”按钮。</p>
+                    <p>如果想完全卸载插件，请在云平台点击卸载插件，然后重启路由器，再删除局域网文件共享的hiwifi_debian文件夹。</p>
+                    <p>设置Debian开机自动启动：<button id="autostart" type="button" class="btn btn-sm btn-default">切换自启状态</button> <span id="autostart_status"></span></p>
+                    <h4>温馨提示</h4>
+                    <p>0. 下载镜像后记得把文件改名为mipsel_debian.tgz
+                        <br>1. 在云平台卸载插件后，hiwifi_debian文件夹不会自动删除，你可以选择留下这些文件，下次安装插件时，如果检测到有disk.img存在，会直接使用。
+                        <br>2. 由于Debian是通过chroot启动的，所以Debian内的开机启动脚本不会运行，如果你有一些程序想一直运行，每次重启路由器后都需要你手动ssh到Debian上启动。
+                        <br>3. Debian启动执行的命令为：chroot mipsel_debian /etc/init.d/ssh restart; chroot mipsel_debian /bin/sh /etc/rc.local
+                    </p>
+                </div>
+            </div>
+            
+            <div class="row well">
+                <div class="col-md-12">
+                    <h3>镜像下载</h3>
+                    <p><span class="label label-info">原版镜像</span> <a href="http://pan.baidu.com/s/1c2N2UzA">百度云链接</a></p>
+                    <p><span class="label label-info">原版镜像+整合芒果云（KODExplorer）</span> <a href="http://pan.baidu.com/s/1bpcNKOf">百度云链接</a></p>
+                    <p><span class="label label-info">所有历史版本</span> <a href="http://pan.baidu.com/s/1boCzzEB">百度云链接</a></p>
+                </div>
+            </div>
+            
+            <div class="row well">
+                <div class="col-md-12">
+                    <h3>芒果云使用教程</h3>
+                    <p><span class="label label-success">芒果云演示</span> <a href="http://demo.kalcaddle.com/">KODExplorer官方demo</a></p>
+                    <p><span class="label label-success">芒果云介绍</span> <a href="http://www.kalcaddle.com/index.html">KODExplorer官网</a></p>
+                    <p>想启动或停止芒果云以及Debian的nginx和php5-fpm，可以使用这里的按钮：<button id="kod_start" type="button" class="btn btn-sm btn-default">启动芒果云</button> <button id="kod_stop" type="button" class="btn btn-sm btn-default">停止芒果云</button></p>
+                    <p>或ssh进去之后执行下面的命令启动：<br><span class="text text-info">/etc/init.d/nginx start<br>/etc/init.d/php5-fpm start</span><br>若要停止，把start换成stop即可。</p>
+                    <p>在浏览器输入：<strong>http://路由器IP:8888/</strong> 即可看到芒果云的页面。</p>
+                </div>
+            </div>
+            
+        </div>
+    </body>
+
+</html>

@@ -1,0 +1,65 @@
+#!/bin/sh
+# TODO：多target。
+install(){
+    cp ./hiwifi_iscsi /etc/init.d
+    chmod +x /etc/init.d/hiwifi_iscsi
+    mkdir /tmp/data/hiwifi_iscsi
+    cp tgtd /tmp/data/hiwifi_iscsi
+    cp tgtadm /tmp/data/hiwifi_iscsi
+    cp ./iSCSI-Target.conf /tmp/data/hiwifi_iscsi
+    cd /tmp/data/hiwifi_iscsi
+    . iSCSI-Target.conf
+    chmod +x tgtd tgtadm
+    mkdir -p /tmp/data/filetransit0/hiwifi_iscsi
+    
+    if [ ! -f "/tmp/data/filetransit0/hiwifi_iscsi/disk.img" ]; then # 判断img文件是否存在，如果不存在就生成一个
+        (dd if=/dev/zero of=/tmp/data/filetransit0/hiwifi_iscsi/disk.img bs=1M count=$diskspace &>/dev/null &)  # 将dd放到后台进行
+    else  # 如果存在，直接使用旧的。
+        start
+    fi
+    return 0
+}
+
+uninstall(){
+    # 如果img还没生成完毕就卸载，终止生成img并自动移除
+    #if [ $(ps|grep 'dd if'|wc -l) = "2" ]; then
+    #    killall -9 dd
+    #    rm /tmp/data/filetransit0/hiwifi_iscsi/disk.img
+    #fi
+    
+    stop
+    rm -rf /tmp/data/hiwifi_iscsi
+    rm /tmp/data/hiwifi_iscsi/iSCSI-Target.conf
+    rm /etc/init.d/hiwifi_iscsi
+    return 0
+}
+
+start() {
+    /etc/init.d/hiwifi_iscsi start
+    /etc/init.d/hiwifi_iscsi enable
+	return 0
+}
+
+stop() {
+    /etc/init.d/hiwifi_iscsi stop
+    /etc/init.d/hiwifi_iscsi disable
+	return 0
+}
+
+status() {
+    # 如果img正在生成，返回生成进度
+    if [ $(ps|grep '/tmp/data/filetransit0/hiwifi'|wc -l) -ge "2" ]; then
+        . /tmp/data/hiwifi_iscsi/iSCSI-Target.conf
+        current_disk_size_var1=$(du /tmp/data/filetransit0/hiwifi_iscsi/disk.img|awk '{print int($1/1024)}')
+        progress_var1=$(awk 'BEGIN{print '$current_disk_size_var1'/'$diskspace'*100}')
+        echo '{ "status" : "running", "msg" : "磁盘文件正在生成，请过一段时间后刷新页面。<br>磁盘文件设置大小：'$diskspace'M<br>当前磁盘文件大小：'$current_disk_size_var1'M<br>进度：'$progress_var1'%" }'
+    else
+    # 否则返回插件状态
+        disk_size_var1=$(du /tmp/data/filetransit0/hiwifi_iscsi/disk.img|awk '{print int($1/1024)}')
+        if [ $(ps|grep tgtd|wc -l) != "1" ]; then
+    		echo '{ "status" : "running", "msg" : "iSCSI磁盘大小：'$disk_size_var1'M" }'
+    	else
+    		echo '{ "status" : "stopped", "msg" : "iSCSI磁盘大小：'$disk_size_var1'M" }'
+    	fi
+    fi
+}

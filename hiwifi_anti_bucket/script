@@ -1,0 +1,74 @@
+#!/bin/sh
+
+conf_path="/etc/nginx/vh.anti_bucket_by_yumi.conf"
+
+conf_1="
+log_format bucket '\$http_host \$request';
+server {
+    listen 13129;
+    resolver localhost;
+    location ~* "
+
+conf_2="$ {
+        access_log /tmp/data/anti_bucket.log bucket;
+        return 404;
+    }
+    location / {
+        proxy_pass http://\$host\$request_uri;
+    }
+}
+"
+
+install()
+{
+    echo $conf_1 > $conf_path
+    cat keywords >> $conf_path
+    echo $conf_2 >> $conf_path
+    nginx -s reload
+    start
+}
+
+uninstall()
+{
+    rm /etc/nginx/vh.anti_bucket_by_yumi.conf
+    rm /root/anti_bucket.conf
+    stop
+    nginx -s reload
+    rm -rf /tmp/data/anti_bucket.log
+}
+
+start()
+{
+    iptables -t nat -I PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 13129
+    echo -e 'iptables -t nat -I PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 13129' > /etc/firewall.d/anti_bucket.sh
+    chmod +x /etc/firewall.d/anti_bucket.sh
+}
+
+stop()
+{
+    rm -f /etc/firewall.d/anti_bucket.sh
+    iptables -t nat -D PREROUTING -p tcp --dport 80 -j REDIRECT --to-ports 13129
+}
+
+status()
+{
+    iptables_var1=$(iptables -t nat -L PREROUTING)
+    iptables_var2=$(echo "$iptables_var1"|grep 13129)
+    if [ -n "$iptables_var2" ]
+    then
+        status_var="running"
+    else
+        status_var="stopped"
+    fi
+    reject_times_var1=$(cat /tmp/data/anti_bucket.log|wc -l)
+    echo '{ "status" : "'$status_var'", "msg" : "累计阻止次数：'$reject_times_var1'次。"}'
+}
+
+reconfigure()
+{
+    echo $conf_1 > $conf_path
+    cat keywords >> $conf_path
+    echo $conf_2 >> $conf_path
+    nginx -s reload
+}
+
