@@ -1,0 +1,13 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+
+start() {
+	. /etc/market/docker-nginx
+	start
+}
+
+stop() {
+	. /etc/market/docker-nginx
+	stop
+}

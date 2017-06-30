@@ -1,0 +1,51 @@
+#!/bin/sh
+
+# TODO 
+
+docker_img_path="/tmp/data/filetransit0/yumi-docker/nginx/nginx-docker.img"
+install_path="/tmp/data/filetransit0/yumi-docker/nginx"
+mount_path="/tmp/data/filetransit0/yumi-docker/nginx/mount"
+
+www_path="/tmp/data/filetransit0/yumi-docker/nginx/www"
+
+install(){
+    mkdir -p $install_path
+    mkdir -p $mount_path
+    mkdir -p $www_path
+    cp nginx-docker.img $docker_img_path
+    cp -r www/* $www_path
+    start
+}
+
+uninstall(){
+    stop
+    # rm -rf $mount_path
+    # rm -rf $docker_img_path
+    # rm -rf $www_path
+    # rm -rf $install_path
+}
+
+start() {
+    mount $docker_img_path $mount_path
+    mount /dev $mount_path/dev
+    mount /proc $mount_path/proc
+    mount $www_path $mount_path/www
+    chroot $mount_path nginx
+}
+
+stop() {
+    chroot $mount_path nginx -s stop
+    umount $mount_path/www
+    umount $mount_path/dev
+    umount $mount_path/proc
+    umount $mount_path
+}
+
+status() {
+    if [ $(ps|grep 'nginx'|wc -l) -ge "4" ]; then
+        status="running"
+    else
+        status="stopped"
+    fi
+    echo '{ "status" : "'$status'", "msg" : "/tmp/data/filetransit0/yumi-docker/nginx" }'
+}

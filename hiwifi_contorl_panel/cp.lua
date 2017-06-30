@@ -8,7 +8,8 @@ function index()
     page.title   = _("")
     page.order   = 9
     page.index = true
-    entry({"cp"}, template("admin_web/cp"))
+    entry({"cp"}, template("admin_web/cp_main"))
+    entry({"cp","main"}, template("admin_web/cp_main"))
     entry({"cp","get_summary_info"}, call("get_summary_info"))
     entry({"cp","get_disk_info"}, call("get_disk_info"))
     entry({"cp","monitor"}, template("admin_web/cp_monitor"))
@@ -66,16 +67,16 @@ function update_log()
 end
 
 function update_res()
-    luci.sys.exec(". /etc/market/control_panel.script \&\& update_res")
+    luci.sys.exec(". /etc/market/cp2.sh \&\& update_res")
     luci.http.write('更新程序执行完毕！请关闭此页面，在控制面板页面刷新即可。')
 end
 
 function samba_opt_switch()
-    luci.sys.exec(". /etc/market/control_panel.script \&\& samba_opt_switch")
+    luci.sys.exec(". /etc/market/cp2.sh \&\& samba_opt_switch")
 end
 
 function samba_opt_status()
-    local samba_opt_status_1 = luci.sys.exec(". /etc/market/control_panel.script \&\& samba_opt_status")
+    local samba_opt_status_1 = luci.sys.exec(". /etc/market/cp2.sh \&\& samba_opt_status")
     luci.http.write(samba_opt_status_1)
 end
 
@@ -85,19 +86,19 @@ function get_storage_info()
 end
 
 function mem_opt_switch()
-    luci.sys.exec(". /etc/market/control_panel.script \&\& mem_opt_switch")
+    luci.sys.exec(". /etc/market/cp2.sh \&\& mem_opt_switch")
 end
 
 function mem_opt_status()
-    local samba_opt_status_1 = luci.sys.exec(". /etc/market/control_panel.script \&\& mem_opt_status")
+    local samba_opt_status_1 = luci.sys.exec(". /etc/market/cp2.sh \&\& mem_opt_status")
     luci.http.write(samba_opt_status_1)
 end
 
 function ping_opt_switch()
-    luci.sys.exec(". /etc/market/control_panel.script \&\& ping_opt_switch")
+    luci.sys.exec(". /etc/market/cp2.sh \&\& ping_opt_switch")
 end
 
 function ping_opt_status()
-    local samba_opt_status_1 = luci.sys.exec(". /etc/market/control_panel.script \&\& ping_opt_status")
+    local samba_opt_status_1 = luci.sys.exec(". /etc/market/cp2.sh \&\& ping_opt_status")
     luci.http.write(samba_opt_status_1)
 end

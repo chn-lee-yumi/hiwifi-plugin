@@ -1,5 +1,6 @@
 <%
-local res_ver = luci.sys.exec("wget http://139.129.20.107/hiwifi_contorl_panel/ -O -")
+local res_ver = luci.sys.exec("wget http://139.129.20.107/hiwifi_contorl_panel/ -O -t 2 -T 1 -")
+local res_local_ver = "20170615"
 %>
 <!DOCTYPE html>
 <html>
@@ -13,12 +14,10 @@ local res_ver = luci.sys.exec("wget http://139.129.20.107/hiwifi_contorl_panel/ 
         
         <title>HiWiFi Server Control Panel</title>
         
-        <link href="../../../cp/bootstrap.min.css" rel="stylesheet">
+        <link href="/cp/bootstrap.min.css" rel="stylesheet">
         
-        <link href="../../../cp/dashboard.css" rel="stylesheet">
-        
-        <script src="../../../cp/jquery.min.js"></script>
-        <script src="../../../cp/bootstrap.min.js"></script>
+        <script src="/cp/jquery.min.js"></script>
+        <script src="/cp/bootstrap.min.js"></script>
         
         <script>
             $(document).ready(function(){
@@ -65,7 +64,9 @@ local res_ver = luci.sys.exec("wget http://139.129.20.107/hiwifi_contorl_panel/ 
     
     <body>
         
-        <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        
+      
+        <!--<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
           <div class="container-fluid">
             <div class="navbar-header">
               <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
@@ -84,11 +85,61 @@ local res_ver = luci.sys.exec("wget http://139.129.20.107/hiwifi_contorl_panel/ 
               </ul>
             </div>
           </div>
-        </nav>
+        </nav>-->
         
-        <div class="container-fluid">
+        <div class="container">
+            
+            <nav class="navbar navbar-default">
+                <div class="container-fluid">
+                  <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                      <span class="icon-bar"></span>
+                      <span class="icon-bar"></span>
+                      <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="#">HiWiFi Server Control Panel</a>
+                  </div>
+                  <div id="navbar" class="navbar-collapse collapse" aria-expanded="false" style="height: 1px;">
+                    <ul class="nav navbar-nav">
+                      <li><a href="main">服务器概况</a></li>
+                      <li><a href="monitor">服务器监控</a></li>
+                      <li class="dropdown active">
+                        <a href="function" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">服务器功能 <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                          <li><a href="function#nassan">NAS/SAN</a></li>
+                          <li><a href="function#web">Web服务</a></li>
+                          <li><a href="function#db">数据库</a></li>
+                          <li><a href="function#other">其它</a></li>
+                          <li role="separator" class="divider"></li>
+                          <li class="dropdown-header">其它功能</li>
+                          <li><a href="function#opt">性能优化</a></li>
+                          <li><a href="function#security">安全</a></li>
+                        </ul>
+                      </li>
+                      <li class="dropdown">
+                        <a href="tools" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">工具 <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                          <li><a href="tools?tool=top_1">top -b -n 1</a></li>
+                          <li><a href="tools?tool=top_2">top -d 1</a></li>
+                          <li><a href="tools?tool=df_h">df -h</a></li>
+                          <li><a href="tools?tool=diskstats">cat /proc/diskstats</a></li>
+                          <li><a href="tools?tool=fdisk_l">fdisk -l</a></li>
+                          <li><a href="tools?tool=storage_info">存储信息 （测试）</a></li>
+                        </ul>
+                      </li>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        <li><a href="#">当前版本:<%=res_local_ver%></a></li>
+                        <li><a href="#">最新版本:<%=res_ver%></a></li>
+                        <li><a href="update_res"  target="_blank">更新插件</a></li>
+                      </li>
+                    </ul>
+                  </div><!--/.nav-collapse -->
+                </div><!--/.container-fluid -->
+              </nav>
+      
             <div class="row">
-                <div class="col-sm-3 col-md-2 sidebar">
+                <!--<div class="col-sm-3 col-md-2 sidebar">
                   <ul class="nav nav-sidebar">
                     <li><a href="../cp"><strong>服务器概况</strong></a></li>
                   </ul>
@@ -113,9 +164,9 @@ local res_ver = luci.sys.exec("wget http://139.129.20.107/hiwifi_contorl_panel/ 
                     <li><a href="function#opt">性能优化</a></li>
                     <li><a href="function#security">安全</a></li>
                   </ul>
-                </div>
+                </div>-->
                 
-                <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+                <div class="main">
     
                         <div class="page-header">
                             <h1>服务器功能</h1>
@@ -158,17 +209,22 @@ local res_ver = luci.sys.exec("wget http://139.129.20.107/hiwifi_contorl_panel/ 
                         -->
                         
                         <div class="row well">
-                            <div class="row">
-                                <div class="col-md-2">
-                                    <a href="https://app.hiwifi.com/plugin?sid=327613435" target="_blank"><h3><span class="label label-success">SMB/CIFS服务器</span></h3></a>
-                                </div>
-                                <div class="col-md-10">
-                                    <p>CIFS 是一个新提出的协议，它使程序可以访问远程Internet计算机上的文件并要求此计算机提供服务。CIFS 使用客户/服务器模式。客户程序请求远在服务器上的服务器程序为它提供服务。服务器获得请求并返回响应。CIFS是公共的或开放的SMB协议版本，并由Microsoft使用。SMB协议在局域网上用于服务器文件访问和打印的协议。像SMB协议一样，CIFS在高层运行，而不像TCP/IP协议那样运行在底层。CIFS可以看做是应用程序协议如文件传输协议和超文本传输协议的一个实现。</p>
-                                </div>
+                            <div class="col-md-2">
+                                <a href="https://app.hiwifi.com/plugin?sid=327613435" target="_blank"><h3><span class="label label-success">SMB/CIFS服务器</span></h3></a>
+                            </div>
+                            <div class="col-md-10">
+                                <p>CIFS 是一个新提出的协议，它使程序可以访问远程Internet计算机上的文件并要求此计算机提供服务。CIFS 使用客户/服务器模式。客户程序请求远在服务器上的服务器程序为它提供服务。服务器获得请求并返回响应。CIFS是公共的或开放的SMB协议版本，并由Microsoft使用。SMB协议在局域网上用于服务器文件访问和打印的协议。像SMB协议一样，CIFS在高层运行，而不像TCP/IP协议那样运行在底层。CIFS可以看做是应用程序协议如文件传输协议和超文本传输协议的一个实现。</p>
                             </div>
                         </div>
                         
-                        
+                        <div class="row well">
+                            <div class="col-md-2">
+                                <a href="https://app.hiwifi.com/plugin?sid=951178528" target="_blank"><h3><span class="label label-warning">HTTP文件服务器</span></h3></a>
+                            </div>
+                            <div class="col-md-10">
+                                <p>使用HTTP访问局域网文件中转站中的文件。</p>
+                            </div>
+                        </div>
                         
                         <div class="row well">
                             <div class="col-md-2">
@@ -218,32 +274,41 @@ local res_ver = luci.sys.exec("wget http://139.129.20.107/hiwifi_contorl_panel/ 
                             </div>
                         </div>
                         
-                        <div class="row well">
+                        <!--功能待测试<div class="row well">
+                            <div class="col-md-2">
+                                <a href="https://app.hiwifi.com/plugin?sid=126941735" target="_blank"><h3><span class="label label-warning">DLNA服务器</span></h3></a>
+                            </div>
+                            <div class="col-md-10">
+                                <p>把路由器上的音视频文件通过DLNA协议共享出来，可以在智能电视等支持DLNA的设备上访问。</p>
+                            </div>
+                        </div>-->
+                        
+                        <!--<div class="row well">
                             <div class="col-md-2">
                                 <a href="https://app.hiwifi.com/plugin?sid=937247062" target="_blank"><h3><span class="label label-success">VPN服务器</span></h3></a>
                             </div>
                             <div class="col-md-10">
                                 <p>支持PPTP和L2TP（可同时启用）。</p>
                             </div>
-                        </div>
+                        </div>-->
                         
-                        <div class="row well">
+                        <!--<div class="row well">
                             <div class="col-md-2">
                                 <a href="https://app.hiwifi.com/plugin?sid=28" target="_blank"><h3><span class="label label-success">端口映射/DMZ主机</span></h3></a>
                             </div>
                             <div class="col-md-10">
                                 <p>设置一台DMZ主机或设置一些端口映射。</p>
                             </div>
-                        </div>
+                        </div>-->
                         
-                        <div class="row well">
+                        <!--<div class="row well">
                             <div class="col-md-2">
                                 <a href="https://app.hiwifi.com/plugin?sid=321256294" target="_blank"><h3><span class="label label-success">Ngrokc客户端</span></h3></a>
                             </div>
                             <div class="col-md-10">
                                 <p>ngrok能使你从公网访问内网的机器。ngrokc是c语言版的ngrok客户端。</p>
                             </div>
-                        </div>
+                        </div>-->
                         
                         <div class="row well">
                             <div class="col-md-2">
@@ -254,14 +319,14 @@ local res_ver = luci.sys.exec("wget http://139.129.20.107/hiwifi_contorl_panel/ 
                             </div>
                         </div>
                         
-                        <div class="row well">
+                        <!--<div class="row well">
                             <div class="col-md-2">
                                 <a href="https://app.hiwifi.com/plugin?sid=100689851" target="_blank"><h3><span class="label label-success">DNSPod动态域名</span></h3></a>
                             </div>
                             <div class="col-md-10">
                                 <p>DNSPod的动态域名服务。</p>
                             </div>
-                        </div>
+                        </div>-->
                         
                         <div class="row well">
                             <div class="col-md-2">

@@ -1,0 +1,48 @@
+#!/bin/sh
+
+# TODO 
+
+docker_img_path="/tmp/data/filetransit0/yumi-docker/php5/php5-docker.img"
+install_path="/tmp/data/filetransit0/yumi-docker/php5"
+mount_path="/tmp/data/filetransit0/yumi-docker/php5/mount"
+
+www_path="/tmp/data/filetransit0/yumi-docker/nginx/www"
+
+install(){
+    mkdir -p $install_path
+    mkdir -p $mount_path
+    mkdir -p $www_path
+    tar xzf php5-docker.tgz -C $install_path
+    start
+}
+
+uninstall(){
+    stop
+    # rm -rf $mount_path
+    # rm -rf $install_path
+}
+
+start() {
+    mount $docker_img_path $mount_path
+    mount /dev $mount_path/dev
+    mount /proc $mount_path/proc
+    mount $www_path $mount_path/www
+    chroot $mount_path php-cgi -b 127.0.0.1:9000 &
+}
+
+stop() {
+    killall -9 php-cgi
+    umount $mount_path/www
+    umount $mount_path/dev
+    umount $mount_path/proc
+    umount $mount_path
+}
+
+status() {
+    if [ $(ps|grep 'php-cgi -b 127.0.0.1:9000'|wc -l) -ge "2" ]; then
+        status="running"
+    else
+        status="stopped"
+    fi
+    echo '{ "status" : "'$status'", "msg" : "/tmp/data/filetransit0/yumi-docker/php5 <br> php-cgi监听端口：127.0.0.1:9000" }'
+}
