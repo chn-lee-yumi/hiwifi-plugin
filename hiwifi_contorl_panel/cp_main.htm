@@ -4,7 +4,7 @@ local system_type = luci.sys.exec("cat /proc/cpuinfo|grep 'system type'")
 local machine = luci.sys.exec("cat /proc/cpuinfo|grep machine")
 local cpu_model = luci.sys.exec("cat /proc/cpuinfo|grep 'cpu model'|head -n 1")
 local res_ver = luci.sys.exec("wget http://139.129.20.107/hiwifi_contorl_panel/ -O -") --有BUG！改为html获取。
-local res_local_ver = "20170615"
+local res_local_ver = "20170729"
 %>
 <!DOCTYPE html>
 <html>
@@ -247,6 +247,7 @@ local res_local_ver = "20170615"
                         <div class="row well">
                             <div class="col-md-12">
                                 <h4><span class="label label-info">更新日志</span></h4>
+                                <p class="text-info">20170615 > 20170729<br>1. 修复了更新固件后配置不保留的问题。<br>2.<strong>临时修复</strong>新固件安装插件后无法进入路由器首页的BUG。</p><!--待更新：添加监控开关，以节省资源-->
                                 <p class="text-info">20170611 > 20170615<br>1. 修复了有时进入控制面板显示错误的问题。</p>
                                 <p class="text-info">20170309 > 20170611<br>1. 界面修改，适配手机屏幕。<br>2. “服务器功能”整理了一下。</p>
                                 <p class="text-info">20170308 > 20170309<br>1. “服务器功能”增加VPN服务器。</p>

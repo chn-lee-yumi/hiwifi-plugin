@@ -2,17 +2,33 @@
 
 mem_opt_path=/etc/rc.d/S99cp_mem_opt
 ping_opt_path=/etc/rc.d/S99cp_ping_opt
+samba_opt_path=/etc/rc.d/S99cp_samba_opt
 
 samba_opt_on(){
     sed -i 's/SO_RCVBUF=[0-9]*/SO_RCVBUF=655360/g' /etc/samba/smb.conf.template
     sed -i 's/SO_SNDBUF=[0-9]*/SO_SNDBUF=655360/g' /etc/samba/smb.conf.template
     /etc/init.d/samba reload
+    (
+    cat <<EOF
+#!/bin/sh /etc/rc.common
+
+START=99
+
+start(){
+    sed -i 's/SO_RCVBUF=[0-9]*/SO_RCVBUF=655360/g' /etc/samba/smb.conf.template
+    sed -i 's/SO_SNDBUF=[0-9]*/SO_SNDBUF=655360/g' /etc/samba/smb.conf.template
+    /etc/init.d/samba reload
+}
+EOF
+    ) > $samba_opt_path
+    chmod 777 $samba_opt_path
 }
 
 samba_opt_off(){
     sed -i 's/SO_RCVBUF=[0-9]*/SO_RCVBUF=65535/g' /etc/samba/smb.conf.template
     sed -i 's/SO_SNDBUF=[0-9]*/SO_SNDBUF=65535/g' /etc/samba/smb.conf.template
     /etc/init.d/samba reload
+    rm $samba_opt_path
 }
 
 samba_opt_status(){
@@ -53,7 +69,7 @@ EOF
 
 mem_opt_off(){
     rm $mem_opt_path
-    echo 2049 > /proc/sys/vm/min_free_kbytes
+    echo 4096 > /proc/sys/vm/min_free_kbytes
     echo 200 > /proc/sys/vm/vfs_cache_pressure
 }
 
@@ -164,7 +180,10 @@ install_cp(){
     cp -r cp /www
     rm /var/run/luci-indexcache
     start
-    sed -i 's/<span class="ft-nav">/<span class="ft-nav"><a href="..\/cp\/main" target="_blank">服务器控制面板<\/a><span>\&nbsp;\&nbsp;<\/span>\|<span>\&nbsp;\&nbsp;<\/span>/g' /usr/lib/lua/luci/view/admin_web/footer.htm
+    # sed -i 's/<span class="ft-nav">/<span class="ft-nav"><a href="..\/cp\/main" target="_blank">服务器控制面板<\/a><span>\&nbsp;\&nbsp;<\/span>\|<span>\&nbsp;\&nbsp;<\/span>/g' /usr/lib/lua/luci/view/admin_web/footer.htm
+    echo $mem_opt_path >> /lib/upgrade/keep.d/hiwifi_control_panel
+    echo $ping_opt_path >> /lib/upgrade/keep.d/hiwifi_control_panel
+    echo $samba_opt_path >> /lib/upgrade/keep.d/hiwifi_control_panel
 }
 
 uninstall_cp(){
@@ -178,8 +197,8 @@ uninstall_cp(){
     rm $sh2_path
     rm $sh_log_path
     rm $daemon_path
-    rm -r /www/cp
-    sed -i 's/<span class="ft-nav"><a href="..\/cp\/main" target="_blank">服务器控制面板<\/a><span>\&nbsp;\&nbsp;<\/span>|<span>\&nbsp;\&nbsp;<\/span>/<span class="ft-nav">/g' /usr/lib/lua/luci/view/admin_web/footer.htm
+    rm -rf /www/cp
+    # sed -i 's/<span class="ft-nav"><a href="..\/cp\/main" target="_blank">服务器控制面板<\/a><span>\&nbsp;\&nbsp;<\/span>|<span>\&nbsp;\&nbsp;<\/span>/<span class="ft-nav">/g' /usr/lib/lua/luci/view/admin_web/footer.htm
     return 0
 }
 
