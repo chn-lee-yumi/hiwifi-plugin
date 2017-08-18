@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>路由表控制面板</title>
+        <!--
+        <link href="../../cp/bootstrap.min.css" rel="stylesheet">
+        <script src="../../cp/jquery.min.js"></script>
+        <script src="../../cp/bootstrap.min.js"></script>
+        -->
+        <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+        <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+        <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <script>
+            $(document).ready(function(){
+                get_routing_table_info()
+                get_int_info()
+              
+              /*
+              $("#autostart").click(function(){
+                $.get("debian/autostart",function(data,status){
+                    get_autostart_status();
+                });
+              });
+              
+              $("#kod_start").click(function(){
+                $.get("debian/kod_start",function(data,status){
+                    alert("芒果云已启动！");
+                });
+              });
+              */
+              
+            });
+            
+            function get_routing_table_info(){
+                $.get("routing_table/show_ip_route",function(data,status){
+                    $("#routing_table_info").html(data)
+                });
+            }
+            
+            function get_int_info(){
+                $.get("routing_table/show_int",function(data,status){
+                    $("#int_info").html(data)
+                });
+            }
+        </script>
+        
+    </head>
+    
+    <body>
+        <div class="col-md-10 col-md-offset-1 main">
+            
+            <div class="page-header">
+                <h1>Debian控制面板</h1>
+            </div>
+            
+            <div class="row well">
+                <div class="col-md-12">
+                    <h2>路由表信息</h2>
+                    <h3 id='routing_table_info' class='alert alert-info' style="font-family:黑体"></h3>
+                </div>
+            </div>
+            
+            <div class="row well">
+                <div class="col-md-12">
+                    <h2>路由表配置</h2>
+                    
+                      <form class="form-horizontal" action="routing_table/set_routing_tabel" method="post">
+                        <fieldset>
+                        <div class="control-group col-md-1">
+                            <div class="controls">
+                              <label class="radio">
+                                <input type="radio" value="add" name="act" checked="checked">
+                                添加
+                              </label>
+                              <label class="radio">
+                                <input type="radio" value="del" name="act">
+                                删除
+                              </label>
+                            </div>
+                        </div>
+                    
+                        <div class="control-group col-md-1">
+                            <div class="controls">
+                              <label class="radio">
+                                <input type="radio" value="-net" name="tgt" checked="checked">
+                                网络
+                              </label>
+                              <label class="radio">
+                                <input type="radio" value="-host" name="tgt">
+                                主机
+                              </label>
+                            </div>
+                        </div>
+                    
+                        <div class="control-group col-md-3">
+                              <div class="controls">
+                                <input type="text" placeholder="10.0.0.0/24" name="ip" class="input-xlarge">
+                                <p class="help-block">目的网络或主机/子网掩码</p>
+                              </div>
+                            </div>
+                    
+                        <div class="control-group">
+                            <div class="controls col-md-1">
+                              <label class="radio">
+                                <input type="radio" value="dev" name="next" checked="checked">
+                                接口
+                              </label>
+                              <label class="radio">
+                                <input type="radio" value="gw" name="next">
+                                网关
+                              </label>
+                              <p class="help-block">下一跳</p>
+                            </div>
+                        </div>
+                        
+                        <div class="control-group col-md-3">
+                          <div class="controls">
+                            <input type="text" placeholder="eth2" name="next_hop" class="input-xlarge">
+                            <p class="help-block">接口或网关IP地址</p>
+                          </div>
+                        </div>
+                        
+                        <div class="controls col-md-2">
+                            <button class="btn btn-success" type="submit">提交</button>
+                        </div>
+                        
+                        </fieldset>
+                      </form>
+
+                </div>
+            </div>
+            
+            <div class="row well">
+                <div class="col-md-12">
+                    <h2>说明</h2>
+                    <table class="table table-striped" style="font-family:黑体"><tbody>
+                        <tr>
+                         <td>Destination</td>
+                         <td>目标网段或者主机</td>
+                        </tr>
+                        <tr>
+                         <td>Gateway</td>
+                         <td>网关地址，*表示目标是本主机所属的网络，不需要路由</td>
+                        </tr>
+                        <tr>
+                         <td>Genmask</td>
+                         <td>网络掩码</td>
+                        </tr>
+                        <tr>
+                         <td>Flags</td>
+                         <td>标记。标记说明如下</td>
+                        </tr>
+                        <tr>
+                         <td></td>
+                         <td>U — 路由是活动的</td>
+                        </tr>
+                        <tr>
+                         <td></td>
+                         <td>H — 目标是一个主机</td>
+                        </tr>
+                        <tr>
+                         <td></td>
+                         <td>G — 路由指向网关</td>
+                        </tr>
+                        <tr>
+                         <td></td>
+                         <td>R — 恢复动态路由产生的表项</td>
+                        </tr>
+                        <tr>
+                         <td></td>
+                         <td>D — 由路由的后台程序动态地安装</td>
+                        </tr>
+                        <tr>
+                         <td></td>
+                         <td>M — 由路由的后台程序修改</td>
+                        </tr>
+                        <tr>
+                         <td></td>
+                         <td>! — 拒绝路由</td>
+                        </tr>
+                        <tr>
+                         <td>Metric</td>
+                         <td>路由距离，到达指定网络所需的中转数（linux 内核中没有使用）</td>
+                        </tr>
+                        <tr>
+                         <td>Ref</td>
+                         <td>路由项引用次数（linux 内核中没有使用）</td>
+                        </tr>
+                        <tr>
+                         <td>Use</td>
+                         <td>此路由项被路由软件查找的次数</td>
+                        </tr>
+                        <tr>
+                         <td>Iface</td>
+                         <td>该路由表项对应的输出接口</td>
+                        </tr>
+                    </tbody></table>
+                    <h4 class='text text-warning'>本插件在测试阶段，暂不支持保存设置，重启会自动清空配置内容。</h4>
+                    <h4 class='text text-warning'>插件基于GPLv3协议开源，源代码托管在Github上，仓库地址：<a href="https://github.com/chn-lee-yumi/hiwifi-plugin/tree/master/hiwifi_routing_table" target="_blank">https://github.com/chn-lee-yumi/hiwifi-plugin/tree/master/hiwifi_routing_table</a>。</h4>
+                </div>
+            </div>
+        
+            
+            <div class="row well">
+                <div class="col-md-12">
+                    <h2>接口信息</h2>
+                    <h3 id='int_info' class='alert alert-info' style="font-family:黑体"></h3>
+                </div>
+            </div>
+            
+        </div>
+    </body>
+
+</html>

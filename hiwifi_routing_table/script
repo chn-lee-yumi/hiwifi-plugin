@@ -1,0 +1,35 @@
+#!/bin/sh
+
+controller_path=/usr/lib/lua/luci/controller/admin_web/routing_table.lua
+view_path=/usr/lib/lua/luci/view/admin_web/routing_table.htm
+daemon_path=/etc/init.d/hiwifi_routing_table
+
+install(){
+    cp routing_table.lua $controller_path
+    cp routing_table.htm $view_path
+    #cp hiwifi_routing_table $daemon_path
+    #chmod +x $daemon_path
+    rm /var/run/luci-indexcache
+    return 0
+}
+
+uninstall(){
+    rm $controller_path
+    rm $view_path
+    #$daemon_path stop
+    #$daemon_path disable
+    #rm $daemon_path
+    return 0
+}
+
+start() {
+    return 0
+}
+
+stop() {
+    return 0
+}
+
+status() {
+    echo '{ "status" : "stopped", "msg" : "点击打开路由表控制面板： <a href=\"http://hiwifi.lan/cgi-bin/turbo/routing_table\" target=\"_blank\">http://hiwifi.lan/cgi-bin/turbo/routing_table</a>" }'
+}
