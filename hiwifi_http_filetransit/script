@@ -10,8 +10,8 @@ install()
 {
     cp -r etc /
     cp -r usr /
-    cp libpcre.so.1 /lib
     cp http_filetransit.conf $setting_path
+    ln -s /usr/lib/libpcre.so /usr/lib/libpcre.so.1 # will not remove when uninstalling 卸载时不会移除此文件
     configure
     chmod +x /usr/sbin/lighttpd
     chmod +x /etc/init.d/lighttpd
@@ -57,13 +57,20 @@ status()
 reconfigure()
 {
     stop
+    cp http_filetransit.conf $setting_path
     configure
     start
+    return 0
 }
 
 configure(){
     . $setting_path
-    echo $username:$password > $auth_path
     sed -i "s/server.port = [0-9]*/server.port = $port/g" $conf_path
-    sed -i "s/\"require\" => \"user=.*\"/\"require\" => \"user=$username\"/g" $conf_path
+    if [ $auth == '1' ]; then
+        echo $username:$password > $auth_path
+        sed -i "s/\"require\" => \"user=.*\"/\"require\" => \"user=$username\"/g" $conf_path
+        sed -i "s/.*\"mod_auth\".*/        \"mod_auth\"/g" $conf_path
+    else
+        sed -i "s/.*\"mod_auth\".*/#        \"mod_auth\"/g" $conf_path
+    fi
 }
